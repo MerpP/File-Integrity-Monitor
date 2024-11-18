@@ -6,8 +6,8 @@ import time
 import re
 
 # Consts
-BASELINE_PATH = r"Insert filepath for Baseline.txt to be stored in/"
-FILE_PATH = r"Insert filepath for directory of files to be monitored\/"
+BASELINE_PATH = r"Insert filepath for Baseline.txt to be stored in/" #Use backslashes when specifying filepath
+FILE_PATH = r"Insert filepath for directory of files to be monitored/" #Use backslashes when specifying filepath
 FILES = os.listdir(FILE_PATH)
 IS_EXISTING = os.path.exists(BASELINE_PATH)
 BUF_SIZE = 65536
