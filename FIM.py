@@ -6,8 +6,8 @@ import time
 import re
 
 # Consts
-BASELINE_PATH = r"C:\Users\prem2\Documents\Programming Projects\Python FIM\/"
-FILE_PATH = r"C:\Users\prem2\Documents\Programming Projects\Python FIM\Files\/"
+BASELINE_PATH = r"Insert filepath for Baseline.txt to be stored in/"
+FILE_PATH = r"Insert filepath for directory of files to be monitored\/"
 FILES = os.listdir(FILE_PATH)
 IS_EXISTING = os.path.exists(BASELINE_PATH)
 BUF_SIZE = 65536
@@ -49,7 +49,7 @@ def createBaseline():
         For each file in FILE_PATH
             calculate the file hash
             save in the format of FILE_PATH + file name + | + calculated hash
-            eg: "C:/Users/prem2/Documents/Programming Projects/Python FIM/FIM/Files\test.txt|E2BD7A81FA150195C30ABD5B34CB7DCEE29B3A4AB4C878334E0FB277EAEE0EFEE80F9B3AE42CC63235D987E48BEF4E9E885DD70955AF3017D1B120F8810C5B91"
+            eg: "C:\filepath\test.txt|E2BD7A81FA150195C30ABD5B34CB7DCEE29B3A4AB4C878334E0FB277EAEE0EFEE80F9B3AE42CC63235D987E48BEF4E9E885DD70955AF3017D1B120F8810C5B91"
     '''
 
 def File_Integrity_Check():
