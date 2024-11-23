@@ -1,152 +1,93 @@
-#Import the necessary modules
+#Importing necessary modules
 import hashlib
-import sys
 import os
 import time
 import re
 
-# Consts
-BASELINE_PATH = r"Insert filepath for Baseline.txt to be stored in/" #Use backslashes when specifying filepath
-FILE_PATH = r"Insert filepath for directory of files to be monitored/" #Use backslashes when specifying filepath
-FILES = os.listdir(FILE_PATH)
-IS_EXISTING = os.path.exists(BASELINE_PATH)
+#Constants
+BASELINE_PATH = r"C:\Users\prem2\Documents\Programming Projects\Python FIM\/"
+FILE_PATH = r"C:\Users\prem2\Documents\Programming Projects\Python FIM\Files\/"
 BUF_SIZE = 65536
 
+#Check if a baseline file exists
 def baselineExists():
-
-    if IS_EXISTING is False:
+    if not os.path.exists(os.path.join(BASELINE_PATH, "Baseline.txt")):
         print("Creating new baseline...")
-        #os.remove("Baseline.txt")
         createBaseline()
-        
-        #print(file)
-
-def calculateHashForGivenFile(filename):
-    md5 = hashlib.md5()
-    sha512 = hashlib.sha512()
-    #print(os.stat(FILE_PATH + filename))
-    if os.path.isfile(FILE_PATH + filename):
-        with open(FILE_PATH + filename, 'rb') as binaryFile:
-            data = binaryFile.read(BUF_SIZE)
-            if not data:
-                return
-            md5.update(data)
-            sha512.update(data)
-            return sha512
     else:
-        pass
+        print("Baseline already exists, would you like to overwrite it (Y/N)?")
+        overwrite_input = input("").upper()
+        if overwrite_input == "Y":
+            createBaseline()
 
+#Calculate the hash for a given file
+def calculateHashForGivenFile(filename):
+    sha512 = hashlib.sha512()
+    filepath = os.path.join(FILE_PATH, filename)
+
+    if os.path.isfile(filepath):
+        with open(filepath, 'rb') as binaryFile:
+            while True:
+                data = binaryFile.read(BUF_SIZE)
+                if not data:
+                    break
+                sha512.update(data)
+        return sha512.hexdigest()
+    return None
+
+#Create a baseline file
 def createBaseline():
-    with open(BASELINE_PATH + "Baseline.txt", 'w') as f:
-        for file in FILES:
-            #print(file)
-            hashStore = calculateHashForGivenFile(file)
-            #print("SHA512: {0}".format(hashStore.hexdigest()))
-            f.write(FILE_PATH + file + "|" + hashStore.hexdigest() + "\n")
-            #Will break if file is empty
+    with open(os.path.join(BASELINE_PATH, "Baseline.txt"), 'w') as f:
+        for file in os.listdir(FILE_PATH):
+            hash_value = calculateHashForGivenFile(file)
+            if hash_value:
+                f.write(f"{os.path.join(FILE_PATH, file)}|{hash_value}\n")
+        print("New baseline successfully created")
 
-    '''
-        For each file in FILE_PATH
-            calculate the file hash
-            save in the format of FILE_PATH + file name + | + calculated hash
-            eg: "C:\filepath\test.txt|E2BD7A81FA150195C30ABD5B34CB7DCEE29B3A4AB4C878334E0FB277EAEE0EFEE80F9B3AE42CC63235D987E48BEF4E9E885DD70955AF3017D1B120F8810C5B91"
-    '''
+#Main file integrity check
+def fileIntegrityCheck():
+    while True:
+        if not os.path.exists(os.path.join(BASELINE_PATH, "Baseline.txt")):
+            print("Baseline not found. Please create one first.")
+            return
 
-def File_Integrity_Check():
-    while True:  
-        #fileHashDict = {}
-        q = 1
-        t = 0
-        y = 1
+        #Read the baseline file
+        with open(os.path.join(BASELINE_PATH, "Baseline.txt"), 'r') as baseline_file:
+            baseline_data = [line.strip().split('|') for line in baseline_file.readlines()]
 
-        with open(BASELINE_PATH + "Baseline.txt", "r") as file:
-            hashAndPath = re.split("[\n|]",file.read())
-            for f in FILES:
-                fileList = os.listdir(FILE_PATH)
-                #f = FILES[0]
-                fileStillExists = os.path.exists(hashAndPath[t]) #Variable to check if file exists 
-                hash = calculateHashForGivenFile(f).hexdigest()         
-                if fileStillExists == False:
-                    try:
-                        fileHashDict = {fileList[q]}
-                        #print(filePath[t])
-                        #Errors out if hashAndPath[y] has a list out of range, which occurs when a new file is created
-                        #If a file has been modified, do the following:
-                        
-                    except IndexError as e:
-                        print("New file has been created")
-                            #New file has been created   
-                #If a file has been created, do the following:       
-                # if hash != hashAndPath[y]:
-                    
-                #     #File has been created
-                #     print("File has been created")
-                # else:
-                #     #File has not been created
-                #     pass
-                else:
-                     pass
+        current_files = os.listdir(FILE_PATH)
+        monitored_files = {os.path.basename(item[0]): item[1] for item in baseline_data}
 
-                # if hashAndPath[y] == hash:
-                #     # If file hashes match, do nothing
-                #     pass
-                # else:
-                #     print("File has been modified")
-                #     # File has been modified            
-                    
+        #Check each file within the monitored directory
+        for file in current_files:
+            full_path = os.path.join(FILE_PATH, file)
+            if os.path.isfile(full_path):
+                current_hash = calculateHashForGivenFile(file)
 
+                #If a new file has been created
+                if file not in monitored_files:
+                    print(f"New file detected: {file}")
 
-                        #If a file has been deleted, do the following:
-                        # for i in hashAndPath[t]:
-                        #     fileStillExists = os.path.exists(hashAndPath[t])
-                        #     if fileStillExists:
-                        #         #File hasn't been deleted
-                        #         # print("File hasn't been deleted")
-                        #         pass   
-                        # print("File has been deleted")
+                #If a file has been modified
+                elif monitored_files[file] != current_hash:
+                    print(f"File modified: {file}")
 
-                q +=1 #Increments for each file in directory
-                t +=2 #Increments dictionary values, so the file path and hash value stay in line 
-                y +=2 
+        #Check for deleted files
+        for file in monitored_files.keys():
+            if file not in current_files:
+                print(f"File deleted: {file}")
 
-            #Checks whether file has been deleted
-            # for key in fileList:               
-            #     fileStillExists = os.path.exists(hashAndPath[t])
-            #     if fileStillExists:
-            #         #File hasn't been deleted
-            #         print("File hasn't been deleted")
-            #         pass
-            #     else:      
-            #         #File has been deleted
-            #         print("File has been deleted")
-                
+        time.sleep(2)  #Checks every 2 seconds
 
-
-                  
-
-
-        time.sleep(2)
-             
-
-        
-    
-
-
-
-print("Please select an option")
-print ("A) Create new baseline")
-print ("B) Monitor existing baseline")
-user_input = input("").upper()
+#Options given to user
+print("Please select an option:")
+print("A) Create new baseline")
+print("B) Monitor existing baseline")
+user_input = input("").strip().upper()
 
 if user_input == "A":
     baselineExists()
-    createBaseline()
-elif user_input =="B":
-        File_Integrity_Check()
-
-    #File_Integrity_Check()
-#elif user_input =="C":
+elif user_input == "B":
+    fileIntegrityCheck()
 else:
-    print(user_input + " is not a valid option")
-
-
+    print(f"{user_input} is not a valid option")
