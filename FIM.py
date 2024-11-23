@@ -5,11 +5,11 @@ import time
 import re
 
 #Constants
-BASELINE_PATH = r"C:\Users\prem2\Documents\Programming Projects\Python FIM\/"
-FILE_PATH = r"C:\Users\prem2\Documents\Programming Projects\Python FIM\Files\/"
+BASELINE_PATH = r"Insert filepath for Baseline.txt to be stored in/" #Ensure backslash is used in path and present at end of filepath otherwise it won't work
+FILE_PATH = r"Insert filepath for Baseline.txt to be stored in/" #Ensure backslash is used in path and present at end of filepath otherwise it won't work
 BUF_SIZE = 65536
 
-#Check if a baseline file exists
+#Checks if a baseline file exists
 def baselineExists():
     if not os.path.exists(os.path.join(BASELINE_PATH, "Baseline.txt")):
         print("Creating new baseline...")
